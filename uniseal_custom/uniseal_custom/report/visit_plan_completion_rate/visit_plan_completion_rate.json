@@ -1,0 +1,37 @@
+{
+ "add_total_row": 0,
+ "creation": "2021-08-06 13:30:27.758501",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "UNISEAL Letterhead",
+ "modified": "2021-08-06 13:31:48.421134",
+ "modified_by": "Administrator",
+ "module": "Uniseal Custom",
+ "name": "Visit Plan Completion Rate",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Monthly Visit Plan",
+ "report_name": "Visit Plan Completion Rate",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Contracts Manager"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "General Manager"
+  }
+ ]
+}
