@@ -8,7 +8,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": "UNISEAL Letterhead",
- "modified": "2021-08-06 13:31:48.421134",
+ "modified": "2021-08-06 15:05:35.364897",
  "modified_by": "Administrator",
  "module": "Uniseal Custom",
  "name": "Visit Plan Completion Rate",
@@ -22,16 +22,10 @@
    "role": "System Manager"
   },
   {
-   "role": "Sales User"
-  },
-  {
-   "role": "Contracts Manager"
-  },
-  {
-   "role": "Sales Manager"
-  },
-  {
    "role": "General Manager"
+  },
+  {
+   "role": "Assistant General Manager"
   }
  ]
 }
