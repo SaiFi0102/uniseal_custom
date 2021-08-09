@@ -31,7 +31,8 @@ def get_data(filters):
 	visit_data = frappe.db.sql("""
 		select a.date, a.user, a.activity_with as party_type, a.party_name as party, a.customer_name as party_name
 		from `tabActivity Form` a
-		where a.docstatus = 1 and a.planned_activity = 'Planned' {0}
+		where a.docstatus = 1 and ifnull(a.activity_with, '') != '' and ifnull(a.party_name, '') != ''
+			and a.planned_activity = 'Planned' {0}
 	""".format(visit_conditions), filters, as_dict=1)
 
 	lead_list = list(set([d.party for d in plan_data if d.party_type == "Lead"] + [d.party for d in visit_data if d.party_type == "Lead"]))
@@ -83,17 +84,38 @@ def get_data(filters):
 
 	# post process data
 	for d in data:
-		if d.user:
-			d.user_name = get_fullname(d.user)
+		postprocess_data(d)
 
-		d.party_name = get_party_name(d)
+	# total row
+	if filters.show_total_row:
+		total_row = frappe._dict()
+		total_row.period = '<b>Total</b>'
 
-		d.visit_variance = flt(d.actual_visits) - flt(d.planned_visits)
+		sum_fields = ['actual_visits', 'planned_visits']
+		for f in sum_fields:
+			total_row[f] = 0
 
-		if flt(d.planned_visits):
-			d.completion_rate = flt(d.actual_visits) / flt(d.planned_visits)
+		for d in data:
+			for f in sum_fields:
+				total_row[f] += flt(d.get(f))
+
+		postprocess_data(total_row)
+
+		data.append(total_row)
 
 	return data
+
+
+def postprocess_data(d):
+	if d.user:
+		d.user_name = get_fullname(d.user)
+
+	d.party_name = get_party_name(d)
+
+	d.visit_variance = flt(d.actual_visits) - flt(d.planned_visits)
+
+	if flt(d.planned_visits):
+		d.completion_rate = flt(d.actual_visits) / flt(d.planned_visits)
 
 
 def get_lead_to_customer_map(lead_list):

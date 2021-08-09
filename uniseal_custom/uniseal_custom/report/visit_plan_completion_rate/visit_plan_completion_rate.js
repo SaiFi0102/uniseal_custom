@@ -45,6 +45,12 @@ frappe.query_reports["Visit Plan Completion Rate"] = {
 			fieldtype: "Dynamic Link",
 			options: "party_type",
 		},
+		{
+			label: __("Show Total Row"),
+			fieldname: "show_total_row",
+			fieldtype: "Check",
+			default: 1,
+		},
 	],
 
 	onload: function() {
