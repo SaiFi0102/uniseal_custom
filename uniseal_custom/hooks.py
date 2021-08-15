@@ -87,6 +87,21 @@ app_license = "MIT"
 #	}
 # }
 
+doc_events = {
+	"Monthly Visit Plan": {
+		"validate": "uniseal_custom.validations.validate_visit_plan_lead"
+	},
+	"Activity Form": {
+		"validate": "uniseal_custom.validations.validate_activity_form_lead"
+	},
+	"Opportunity": {
+		"before_insert": "uniseal_custom.validations.validate_opportunity_lead"
+	},
+	"Quotation": {
+		"validate": "uniseal_custom.validations.validate_quotation_lead"
+	},
+}
+
 # Scheduled Tasks
 # ---------------
 
