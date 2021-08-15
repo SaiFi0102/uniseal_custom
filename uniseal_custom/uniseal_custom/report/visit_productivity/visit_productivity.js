@@ -21,9 +21,9 @@ frappe.query_reports["Visit Productivity"] = {
 		},
 		{
 			label: __("Sales Person"),
-			fieldname: "user",
+			fieldname: "sales_person",
 			fieldtype: "Link",
-			options: "User",
+			options: "Sales Person",
 		},
 		{
 			label: __("Party Type"),

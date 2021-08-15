@@ -23,14 +23,14 @@ def get_data(filters):
 
 	visit_conditions = get_conditions(filters, "Activity Form")
 	visit_data = frappe.db.sql("""
-		select t.date, t.user, t.activity_with as party_type, t.party_name as party, t.customer_name as party_name
+		select t.date, t.sales_person, t.activity_with as party_type, t.party_name as party, t.customer_name as party_name
 		from `tabActivity Form` t
 		where t.docstatus = 1 and ifnull(activity_with, '') != '' and ifnull(party_name, '') != '' {0}
 	""".format(visit_conditions), filters, as_dict=1)
 
 	op_conditions = get_conditions(filters, "Opportunity")
 	opp_data = frappe.db.sql("""
-		select t.transaction_date as date, t.owner as user, opportunity_from as party_type, t.party_name as party,
+		select t.transaction_date as date, t.sales_person, opportunity_from as party_type, t.party_name as party,
 			t.customer_name as party_name, t.opportunity_amount as total
 		from `tabOpportunity` t
 		where t.docstatus < 2 {0}
@@ -38,7 +38,7 @@ def get_data(filters):
 
 	qtn_conditions = get_conditions(filters, "Quotation")
 	qtn_data = frappe.db.sql("""
-		select t.transaction_date as date, t.owner as user, t.quotation_to as party_type, t.party_name as party,
+		select t.transaction_date as date, t.sales_person, t.quotation_to as party_type, t.party_name as party,
 			t.customer_name as party_name, t.grand_total_usd as total
 		from `tabQuotation` t
 		where t.docstatus = 1 {0}
@@ -48,9 +48,11 @@ def get_data(filters):
 	if not filters.party_type or filters.party_type == "Customer":
 		so_conditions = get_conditions(filters, "Sales Order")
 		so_data = frappe.db.sql("""
-			select t.transaction_date as date, t.owner as user, 'Customer' as party_type, t.customer as party,
-				t.customer_name as party_name, t.grand_total_usd as total
+			select t.transaction_date as date, sp.sales_person, 'Customer' as party_type, t.customer as party,
+				t.customer_name as party_name,
+				t.grand_total_usd * ifnull(sp.allocated_percentage, 100) / 100 as total
 			from `tabSales Order` t
+			left join `tabSales Team` sp on sp.parenttype = 'Sales Order' and sp.parent = t.name
 			where t.docstatus = 1 {0}
 		""".format(so_conditions), filters, as_dict=1)
 
@@ -90,7 +92,7 @@ def get_data(filters):
 		row.sales_orders = flt(row.sales_orders) + 1
 		row.sales_order_total = flt(row.sales_order_total) + flt(d.total)
 
-	data = sorted(data_map.values(), key=lambda d: (d.from_date, d.user, cstr(d.party_type), cstr(d.party)))
+	data = sorted(data_map.values(), key=lambda d: (d.from_date, cstr(d.sales_person), cstr(d.party_type), cstr(d.party)))
 
 	# post process data
 	for d in data:
@@ -144,9 +146,6 @@ def get_row(d, data_map):
 
 
 def postprocess_data(d):
-	if d.user:
-		d.user_name = get_fullname(d.user)
-
 	d.party_name = get_party_name(d)
 	d.currency = 'USD'
 
@@ -194,8 +193,11 @@ def get_conditions(filters, doctype):
 		filters.month = datetime.datetime.strptime(filters.month_long, "%B").month
 		conditions.append("month({0}) = %(month)s".format(date_field))
 
-	if filters.user:
-		conditions.append("t.user = %(user)s")
+	if filters.sales_person:
+		if doctype == "Sales Order":
+			conditions.append("sp.sales_person = %(sales_person)s")
+		else:
+			conditions.append("t.sales_person = %(sales_person)s")
 
 	if filters.party_type and filters.party:
 		if filters.party_type == "Lead":
@@ -230,8 +232,7 @@ def get_conditions(filters, doctype):
 def get_colums(filters):
 	return [
 		{"label": _("Period"), "fieldname": "period", "fieldtype": "Data", "width": 90},
-		{"label": _("Sales Person ID"), "fieldname": "user", "fieldtype": "Link", "options": "User", "width": 150},
-		{"label": _("Sales Person Name"), "fieldname": "user_name", "fieldtype": "Data", "width": 150},
+		{"label": _("Sales Person"), "fieldname": "sales_person", "fieldtype": "Link", "options": "Sales Person", "width": 150},
 		{"label": _("Party Type"), "fieldname": "party_type", "fieldtype": "Data", "width": 80},
 		{"label": _("Party"), "fieldname": "party", "fieldtype": "Dynamic Link", "options": "party_type", "width": 100},
 		{"label": _("Party Name"), "fieldname": "party_name", "fieldtype": "Data", "width": 150},

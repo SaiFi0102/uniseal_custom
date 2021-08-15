@@ -21,7 +21,7 @@ def get_data(filters):
 
 	plan_conditions = get_conditions(filters, "Monthly Visit Plan")
 	plan_data = frappe.db.sql("""
-		select p.year, p.month as month_long, p.user, v.party_type, v.party, v.party_name, v.planned_visits
+		select p.year, p.month as month_long, p.sales_person, v.party_type, v.party, v.party_name, v.planned_visits
 		from `tabCustomer Visits` v
 		inner join `tabMonthly Visit Plan` p on p.name = v.parent
 		where p.docstatus = 1 {0}
@@ -29,7 +29,7 @@ def get_data(filters):
 
 	visit_conditions = get_conditions(filters, "Activity Form")
 	visit_data = frappe.db.sql("""
-		select a.date, a.user, a.activity_with as party_type, a.party_name as party, a.customer_name as party_name
+		select a.date, a.sales_person, a.activity_with as party_type, a.party_name as party, a.customer_name as party_name
 		from `tabActivity Form` a
 		where a.docstatus = 1 and ifnull(a.activity_with, '') != '' and ifnull(a.party_name, '') != ''
 			and a.planned_activity = 'Planned' {0}
@@ -80,7 +80,7 @@ def get_data(filters):
 		row = data_map[key]
 		row.actual_visits += 1
 
-	data = sorted(data_map.values(), key=lambda d: (d.from_date, d.user, d.party_type, d.party))
+	data = sorted(data_map.values(), key=lambda d: (d.from_date, cstr(d.sales_person), cstr(d.party_type), cstr(d.party)))
 
 	# post process data
 	for d in data:
@@ -107,9 +107,6 @@ def get_data(filters):
 
 
 def postprocess_data(d):
-	if d.user:
-		d.user_name = get_fullname(d.user)
-
 	d.party_name = get_party_name(d)
 
 	d.visit_variance = flt(d.actual_visits) - flt(d.planned_visits)
@@ -163,11 +160,11 @@ def get_conditions(filters, doctype):
 		elif doctype == "Activity Form":
 			conditions.append("month(a.date) = %(month)s")
 
-	if filters.user:
+	if filters.sales_person:
 		if doctype == "Monthly Visit Plan":
-			conditions.append("p.user = %(user)s")
+			conditions.append("p.sales_person = %(sales_person)s")
 		elif doctype == "Activity Form":
-			conditions.append("a.user = %(user)s")
+			conditions.append("a.sales_person = %(sales_person)s")
 
 	if filters.party_type and filters.party:
 		if filters.party_type == "Lead":
@@ -212,7 +209,7 @@ def get_conditions(filters, doctype):
 
 
 def get_key(d):
-	return d.year, d.month, d.user, cstr(d.party_type), cstr(d.party) or cstr(d.party_name), cint(bool(d.party))
+	return d.year, d.month, cstr(d.sales_person), cstr(d.party_type), cstr(d.party) or cstr(d.party_name), cint(bool(d.party))
 
 
 def get_party_name(d):
@@ -229,8 +226,7 @@ def get_party_name(d):
 def get_colums(filters):
 	return [
 		{"label": _("Period"), "fieldname": "period", "fieldtype": "Data", "width": 90},
-		{"label": _("Sales Person ID"), "fieldname": "user", "fieldtype": "Link", "options": "User", "width": 150},
-		{"label": _("Sales Person Name"), "fieldname": "user_name", "fieldtype": "Data", "width": 150},
+		{"label": _("Sales Person"), "fieldname": "sales_person", "fieldtype": "Link", "options": "Sales Person", "width": 150},
 		{"label": _("Party Type"), "fieldname": "party_type", "fieldtype": "Data", "width": 80},
 		{"label": _("Party"), "fieldname": "party", "fieldtype": "Dynamic Link", "options": "party_type", "width": 100},
 		{"label": _("Party Name"), "fieldname": "party_name", "fieldtype": "Data", "width": 150},
