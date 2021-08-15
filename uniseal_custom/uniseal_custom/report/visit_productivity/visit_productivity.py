@@ -155,7 +155,13 @@ def postprocess_data(d):
 		d.quotation_per_visit = flt(d.quotations) / flt(d.actual_visits)
 		d.sales_order_per_visit = flt(d.sales_orders) / flt(d.actual_visits)
 		d.so_value_per_visit = flt(d.sales_order_total) / flt(d.actual_visits)
+		d.qtn_value_per_visit = flt(d.quotation_total) / flt(d.actual_visits)
 
+	if flt(d.quotations):
+		d.sales_order_per_quotation = flt(d.sales_orders) / flt(d.quotations)
+
+	if flt(d.quotation_total):
+		d.so_value_per_qtn_value = flt(d.sales_order_total) / flt(d.quotation_total)
 
 def get_conditions(filters, doctype):
 	conditions = []
@@ -205,7 +211,7 @@ def get_conditions(filters, doctype):
 				filters.other_party = from_lead
 
 		party_condition = "({0} = %(party_type)s and {1} = %(party)s)".format(party_type_fieldname, party_fieldname)
-		if filters.other_party_type and filters.other_party:
+		if filters.party_type == "Customer" and filters.other_party_type and filters.other_party:
 			party_condition += " or ({0} = %(other_party_type)s and {1} = %(other_party)s)".format(party_type_fieldname, party_fieldname)
 
 		if party_condition:
@@ -238,9 +244,11 @@ def get_colums(filters):
 		{"label": _("Opportunity/Visit"), "fieldname": "opportunity_per_visit", "fieldtype": "Float", "width": 125},
 		{"label": _("Qtn/Visit"), "fieldname": "quotation_per_visit", "fieldtype": "Float", "width": 80},
 		{"label": _("SO/Visit"), "fieldname": "sales_order_per_visit", "fieldtype": "Float", "width": 80},
+		{"label": _("Qtn Value/Visit"), "fieldname": "qtn_value_per_visit", "fieldtype": "Currency", "options": "currency", "width": 110},
 		{"label": _("SO Value/Visit"), "fieldname": "so_value_per_visit", "fieldtype": "Currency", "options": "currency", "width": 110},
 		{"label": _("SO/Qtn"), "fieldname": "sales_order_per_quotation", "fieldtype": "Float", "width": 90},
-		{"label": _("SO Value/Qtn Value"), "fieldname": "so_value_per_qtn_value", "fieldtype": "Currency", "options": "currency", "width": 140},
+		{"label": _("SO Value/Qtn Value"), "fieldname": "so_value_per_qtn_value", "fieldtype": "Float", "width": 140},
+		{"label": _("From Lead"), "fieldname": "from_lead", "fieldtype": "Link", "options": "Lead", "width": 100},
 	]
 
 

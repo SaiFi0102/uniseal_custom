@@ -189,7 +189,7 @@ def get_conditions(filters, doctype):
 				party_condition += " or (v.party_type = %(other_party_type)s and v.party = %(other_party)s)"
 		elif doctype == "Activity Form":
 			party_condition = "(a.activity_with = %(party_type)s and a.party_name = %(party)s)"
-			if filters.other_party_type and filters.other_party:
+			if filters.party_type == "Customer" and filters.other_party_type and filters.other_party:
 				party_condition += " or (a.activity_with = %(other_party_type)s and a.party_name = %(other_party)s)"
 
 		if party_condition:
@@ -212,7 +212,7 @@ def get_conditions(filters, doctype):
 
 
 def get_key(d):
-	return d.year, d.month, d.user, cstr(d.party_type), cstr(d.party), cstr(d.party_name)
+	return d.year, d.month, d.user, cstr(d.party_type), cstr(d.party) or cstr(d.party_name), cint(bool(d.party))
 
 
 def get_party_name(d):
@@ -238,6 +238,7 @@ def get_colums(filters):
 		{"label": _("Actual Visits"), "fieldname": "actual_visits", "fieldtype": "Int", "width": 110},
 		{"label": _("Visit Variance"), "fieldname": "visit_variance", "fieldtype": "Int", "width": 110},
 		{"label": _("Completion Rate"), "fieldname": "completion_rate", "fieldtype": "Float", "width": 110},
+		{"label": _("From Lead"), "fieldname": "from_lead", "fieldtype": "Link", "options": "Lead", "width": 100},
 	]
 
 
